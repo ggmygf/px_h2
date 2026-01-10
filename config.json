@@ -14,8 +14,8 @@
         }
       ],
       "transport": {
-        "type": "ws",
-        "path": "/yp"
+        "type": "grpc",
+        "service_name": "proxy"
       }
     }
   ],
