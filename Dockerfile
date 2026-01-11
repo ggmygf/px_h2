@@ -1,31 +1,27 @@
 # --- Stage 1: Downloader ---
 FROM alpine:latest AS downloader
-RUN apk add --no-cache curl tar
+RUN apk add --no-cache curl unzip
 
 WORKDIR /download
 
-RUN LATEST_VERSION=$(curl -s https://api.github.com/repos/SagerNet/sing-box/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/^v//') && \
-    curl -L "https://github.com/SagerNet/sing-box/releases/download/v${LATEST_VERSION}/sing-box-${LATEST_VERSION}-linux-amd64.tar.gz" -o sb.tar.gz && \
-    tar -xzf sb.tar.gz --strip-components=1
+# Fetch latest Xray release
+RUN LATEST=$(curl -s https://api.github.com/repos/XTLS/Xray-core/releases/latest \
+    | grep tag_name | cut -d '"' -f 4) && \
+    curl -L "https://github.com/XTLS/Xray-core/releases/download/${LATEST}/Xray-linux-64.zip" -o xray.zip && \
+    unzip xray.zip
 
-# --- Stage 2: Final Runtime ---
+# --- Stage 2: Runtime ---
 FROM alpine:latest
 
 RUN apk add --no-cache ca-certificates tzdata bash
 
 WORKDIR /app
 
-COPY --from=downloader /download/sing-box .
+COPY --from=downloader /download/xray .
 COPY config.json .
 
-RUN chmod +x sing-box
-
-# 🔐 Create a non-root user
-RUN adduser -D -u 1000 appuser
-
-# 🔐 Switch to that user
-USER 10001
+RUN chmod +x xray
 
 EXPOSE 8080
 
-CMD ["./sing-box", "run", "-c", "config.json"]
+CMD ["./xray", "-config", "config.json"]
