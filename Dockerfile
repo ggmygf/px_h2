@@ -24,7 +24,7 @@ RUN chmod +x sing-box
 RUN adduser -D -u 1000 appuser
 
 # 🔐 Switch to that user
-USER appuser
+USER 10001
 
 EXPOSE 8080
 
